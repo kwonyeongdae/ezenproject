@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ezen.spring.board.teampro.admin.AdminMapper">
+
+<select id="getlist" resultType="com.ezen.spring.board.teampro.admin.AdminVO" >
+SELECT quantity,beyday,bname, uid, price FROM boughtbook;
+</select>
+
+<select id="getByDay" resultType="com.ezen.spring.board.teampro.admin.AdminVO" parameterType="String">
+        SELECT DAY(beyday) AS day, bname, quantity, price,uid
+        FROM boughtbook
+        WHERE beyday = #{beyday}
+        GROUP BY DAY(beyday), bname, quantity, price,uid
+    </select>
+    
+    <select id="getByMonth" resultType="com.ezen.spring.board.teampro.admin.AdminVO" parameterType="String">
+        SELECT MONTH(beyday) AS month,DAY(beyday) AS day, bname, quantity, price, SUM(price*quantity) AS total,uid
+        FROM boughtbook
+        WHERE YEAR(beyday) = #{year}
+            AND MONTH(beyday) = #{month}
+        GROUP BY MONTH(beyday), DAY(beyday), bname, quantity, price,uid
+    </select>
+    
+    <select id="getByYear" resultType="com.ezen.spring.board.teampro.admin.AdminVO" parameterType="String">
+        SELECT MONTH(beyday) AS month,YEAR(beyday) AS year,
+       SUM(quantity) AS totalquantity,
+       SUM(price*quantity) AS total
+		FROM boughtbook
+		WHERE YEAR(beyday) = #{year}
+		GROUP BY MONTH(beyday),YEAR(beyday);
+    </select>
+
+<select id="getByid" resultType="com.ezen.spring.board.teampro.admin.AdminVO" parameterType="String">
+        SELECT beyday, bname, quantity, price, uid,
+       SUM(price*quantity) AS total
+		FROM boughtbook
+		WHERE uid = #{uid}
+		GROUP BY beyday, bname, quantity, price,uid
+    </select>
+    
+    <select id="getallbook" resultType="map">
+    SELECT * FROM test.book
+    </select>
+    
+    <select id="search" parameterType="com.ezen.spring.board.teampro.BookVO"
+    	resultType="com.ezen.spring.board.teampro.BookVO">
+    SELECT * FROM test.book
+    WHERE
+    <choose>
+    	<when test=" bname != null ">
+    	bname = #{bname}
+    	</when>
+    	<when test=" author != null"> 
+    	author = #{author}
+    	</when>
+    	
+    </choose>
+    
+    </select>
+    
+    <select id="getbook" resultType="com.ezen.spring.board.teampro.BookVO"
+    parameterType="Integer">
+    SELECT * FROM test.book WHERE bnum=#{bnum}
+    </select>
+    
+    <update id="updateBook" parameterType="com.ezen.spring.board.teampro.BookVO"
+    >
+    UPDATE test.book
+    SET bname = #{bname},
+        publisher = #{publisher},
+        author = #{author},
+        price = #{price}
+    WHERE bnum = #{bnum}
+</update>
+    
+
+</mapper>
