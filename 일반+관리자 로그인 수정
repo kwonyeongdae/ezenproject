@@ -1,0 +1,114 @@
+ //일반 이용자 로그인	 
+  @PostMapping("/login")
+  @ResponseBody
+  public Map<String, Boolean> login(MemberVO mem, Model model)
+  {
+    boolean login = fairydao.login(mem);
+    if(login){
+      model.addAttribute("userid", mem.getUserid());
+    }
+    boolean signupRequired = !fairydao.userExists(mem); // 수정된 부분
+    Map<String, Boolean> map = new HashMap<>();
+    map.put("login", login);
+    map.put("signupRequired", signupRequired);
+    return map;
+  }
+
+
+//관리자 로그인
+
+ @PostMapping("/adminLogin")
+  @ResponseBody 
+  public Map<String, Boolean> adminLogin(@RequestParam("userid") String userid, HttpSession session, MemberVO mem, Model model)
+  {
+	 
+     boolean adminLogin = fairydao.adminLogin(mem);
+     if(adminLogin){
+     session.setAttribute("userid", mem .getUserid());
+     session.setAttribute("isAdmin", mem .getNumber());
+     mem =  fairydao.getJoinedMem(userid);
+        
+     }
+     System.out.println("여기 = " +mem .getNumber());
+     System.out.println("여기 = " +mem .getUserid());
+     Map<String, Boolean> map = new HashMap<>();
+     map.put("adminLogin", adminLogin);
+     return map;
+  }
+
+========== 여기까지가  class FairyBoardController 
+
+public boolean login(MemberVO mem) 
+	{
+	    return fairyMapper.loginCheck(mem)>0;
+	}
+
+
+
+public boolean adminLogin(MemberVO mem)
+	{
+	
+		 MemberVO member = fairyMapper.adminLoginCheck(mem);  
+		 return member != null;
+	}
+
+========== 여기까지가  class FairyDAO 
+
+
+package com.ezen.spring.board.teampro;
+  
+import java.util.List;
+
+import org.apache.ibatis.annotations.Mapper;
+import org.springframework.stereotype.Component;
+
+import com.ezen.spring.board.teampro.admin.AdminVO;
+import com.ezen.spring.board.teampro.MemberVO;
+  
+@Component("fairyMapper")
+@Mapper
+public interface FairyMapper 
+{
+	public int addfairyMem(MemberVO mem);
+
+	public int joinIdCheck(MemberVO mem);
+
+	public int joinEmailCheck(MemberVO mem);
+
+	public int loginCheck(MemberVO mem);
+	
+	public MemberVO getJoinedMem(String userid); 
+	
+	public List<AdminVO> getboughtbook(String userid);
+	
+	//public int adminLoginCheck(MemberVO mem);
+	public MemberVO adminLoginCheck(MemberVO mem);
+
+	public int updatedMem(MemberVO mem);
+
+	public List<MemberVO> getMem();
+	
+	public int userExists(MemberVO mem);
+	
+	public int empdel(int fnum);
+
+}
+
+========== 여기까지가 interface FairyMapper(전체)
+
+
+ 
+    <select id="loginCheck" parameterType="com.ezen.spring.board.teampro.MemberVO" resultType="Integer">
+        SELECT COUNT(*) FROM fairymem WHERE userid = BINARY #{userid} AND pass = BINARY #{pass}
+    </select>
+
+
+
+<select id="adminLoginCheck" parameterType="com.ezen.spring.board.teampro.MemberVO" resultType="com.ezen.spring.board.teampro.MemberVO">
+      SELECT number FROM fairymem WHERE userid = BINARY #{userid} AND pass = BINARY #{pass} AND number=9
+    </select>
+
+========== 여기까지가 FairyMapper.xml
+
+=> 로그인시 관리자와 일반 이용자 각 로그인 폼 이용하는 걸로 변경하였고
+해당 메소드에 각각 덮어쓰기 하시면 됩니다. interface FairyMapper는 보기 어려울 것 같아 이것만 인터페이스 전체 올려요 
